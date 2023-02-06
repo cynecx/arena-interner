@@ -1,0 +1,9 @@
+[package]
+name = "arena-interner"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ahash = "0.8.3"
+bumpalo = { version = "3.12", features = ["collections"] }
+generativity = "1.0.1"
