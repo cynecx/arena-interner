@@ -277,17 +277,17 @@ pub mod internal {
 macro_rules! make_interner {
     ($name:ident) => {
         $crate::internal::generativity::make_guard!(guard);
-        let $name = Interner::new(guard);
+        let $name = $crate::Interner::new(guard);
     };
     (mut $name:ident) => {
         $crate::internal::generativity::make_guard!(guard);
-        let mut $name = Interner::new(guard);
+        let mut $name = $crate::Interner::new(guard);
     };
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Interned, Interner};
+    use super::Interned;
 
     #[test]
     fn layout() {
