@@ -7,7 +7,7 @@ use std::{
     ops::Deref,
 };
 
-use bumpalo::Bump;
+pub use bumpalo::Bump;
 
 type HashMap<K, V> = ahash::HashMap<K, V>;
 
@@ -63,6 +63,26 @@ impl fmt::Debug for Interned<'_, '_> {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum CowStr<'b> {
+    Borrowed(&'b str),
+    Owned(bumpalo::collections::String<'b>),
+}
+
+impl<'b> From<bumpalo::collections::String<'b>> for CowStr<'b> {
+    #[inline]
+    fn from(val: bumpalo::collections::String<'b>) -> Self {
+        Self::Owned(val)
+    }
+}
+
+impl<'b> From<&'b str> for CowStr<'b> {
+    #[inline]
+    fn from(val: &'b str) -> Self {
+        Self::Borrowed(val)
+    }
+}
+
 macro_rules! internable_integers {
     ($t:ty, $($ts:ty),+) => {
         internable_integers!($t);
@@ -71,15 +91,15 @@ macro_rules! internable_integers {
     ($t:ty) => {
         impl Internable for $t {
             #[inline]
-            fn intern<'b>(&self, arena: &'b Bump) -> &'b str {
-                bumpalo::format!(in arena, "{}", self).into_bump_str()
+            fn intern<'b>(&self, arena: &'b Bump) -> CowStr<'b> {
+                bumpalo::format!(in arena, "{}", self).into()
             }
         }
     };
 }
 
 pub trait Internable: Copy + Clone + Hash + PartialEq + Eq {
-    fn intern<'b>(&self, arena: &'b Bump) -> &'b str;
+    fn intern<'b>(&self, arena: &'b Bump) -> CowStr<'b>;
 }
 
 internable_integers!(isize, i8, i16, i32, i64, usize, u8, u16, u32, u64);
@@ -134,8 +154,11 @@ impl<'g> Interner<'g> {
     pub fn intern<'a>(&'a self, val: &str) -> Interned<'a, 'g> {
         // SAFETY: We don't store this instance of `UnsafeBumpRefStr` inside our state.
         //         We just use it for the hashmap lookup.
-        let p = UnsafeBumpRefStr(val as *const str);
-        if let Some((entry, _)) = self.map.borrow().get_key_value(&p) {
+        if let Some((entry, _)) = self
+            .map
+            .borrow()
+            .get_key_value(&UnsafeBumpRefStr(val as *const str))
+        {
             let interned = unsafe {
                 // SAFETY: We only store bump allocator references inside the inner map.
                 &*entry.0
@@ -171,6 +194,8 @@ pub struct TypedInterner<'a, 'g, K> {
     _borrow: PhantomData<&'a mut Interner<'g>>,
 }
 
+/// SAFETY: For this to be sound and ergonomic, [`Interner::typed_interner`]
+/// must take a mutable self reference.
 unsafe impl<'a, 'g, K: Internable> Send for TypedInterner<'a, 'g, K> {}
 
 impl<'a, 'g, K: Internable> TypedInterner<'a, 'g, K> {
@@ -197,16 +222,34 @@ impl<'a, 'g, K: Internable> TypedInterner<'a, 'g, K> {
 
     #[cold]
     fn intern_slow(&self, vacant: VacantEntry<K, *const str>, val: K) -> Interned<'a, 'g> {
-        let interned = val.intern(&self.inner.arena);
-        let interned_ptr = interned as *const str;
+        let mut inner_map = self.inner.map.borrow_mut();
+        let (is_new, interned_ptr) = match val.intern(&self.inner.arena) {
+            CowStr::Borrowed(val) => {
+                match inner_map.get_key_value(&UnsafeBumpRefStr(val as *const str)) {
+                    Some((entry, _)) => (false, entry.0),
+                    None => (true, val as *const str),
+                }
+            }
+            CowStr::Owned(val) => {
+                match inner_map.get_key_value(&UnsafeBumpRefStr(val.as_str() as *const str)) {
+                    Some((entry, _)) => (false, entry.0),
+                    None => (true, val.into_bump_str() as *const str),
+                }
+            }
+        };
+        if is_new {
+            let prev = inner_map.insert(UnsafeBumpRefStr(interned_ptr), ());
+            assert!(prev.is_none());
+        }
         vacant.insert(interned_ptr);
-        let prev = self
-            .inner
-            .map
-            .borrow_mut()
-            .insert(UnsafeBumpRefStr(interned_ptr), ());
-        assert!(prev.is_none());
-        Interned(interned, self.inner.id)
+        Interned(
+            unsafe {
+                // SAFETY: interned_ptr is always derived from a reference that has the lifetime of
+                // the bump allocator `'b`.
+                &*interned_ptr
+            },
+            self.inner.id,
+        )
     }
 }
 
@@ -350,6 +393,22 @@ mod tests {
             assert_eq!(a.as_ptr(), c.as_ptr());
         }
     }
+
+    #[test]
+    fn intern_after_typed_drop() {
+        make_interner!(mut interner);
+        let a = interner.typed_interner::<i32>().intern(42).as_ptr();
+        let b = interner.typed_interner::<i32>().intern(42).as_ptr();
+        assert_eq!(a, b);
+    }
+
+    // #[test]
+    // fn intern_after_typed_drop2() {
+    //     make_interner!(mut interner);
+    //     let _interner1 = interner.typed_interner::<i32>();
+    //     let interner2 = interner.typed_interner::<i32>();
+    //     let _b = interner2.intern(42);
+    // }
 
     #[test]
     fn interner_async() {
