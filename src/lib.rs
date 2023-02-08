@@ -4,6 +4,7 @@ use std::{
     fmt,
     hash::{Hash, Hasher},
     marker::PhantomData,
+    mem,
     ops::Deref,
 };
 
@@ -131,30 +132,47 @@ impl PartialEq for UnsafeBumpRefStr {
 
 impl Eq for UnsafeBumpRefStr {}
 
-pub struct Interner<'g> {
+pub struct Storage {
     // Drop the `map` first, then the bump allocator `arena`.
     // SAFETY: `UnsafeBumpRefStr` is a reference into the bump allocator `arena`.
     map: RefCell<HashMap<UnsafeBumpRefStr, ()>>,
     arena: Bump,
-    id: generativity::Id<'g>,
+    _not_sync: PhantomData<*const ()>,
 }
 
-unsafe impl<'g> Send for Interner<'g> {}
+unsafe impl Send for Storage {}
 
-impl<'g> Interner<'g> {
-    pub fn new(guard: generativity::Guard<'g>) -> Self {
+impl Storage {
+    pub fn new() -> Self {
         Self {
             arena: Bump::new(),
             map: RefCell::new(HashMap::default()),
+            _not_sync: PhantomData,
+        }
+    }
+}
+
+pub struct Interner<'s, 'g> {
+    storage: &'s mut Storage,
+    id: generativity::Id<'g>,
+}
+
+unsafe impl<'s, 'g> Send for Interner<'s, 'g> {}
+
+impl<'s, 'g> Interner<'s, 'g> {
+    pub fn new(storage: &'s mut Storage, guard: generativity::Guard<'g>) -> Self {
+        Self {
+            storage,
             id: guard.into(),
         }
     }
 
     #[inline]
-    pub fn intern<'a>(&'a self, val: &str) -> Interned<'a, 'g> {
+    pub fn intern(&self, val: &str) -> Interned<'s, 'g> {
         // SAFETY: We don't store this instance of `UnsafeBumpRefStr` inside our state.
         //         We just use it for the hashmap lookup.
         if let Some((entry, _)) = self
+            .storage
             .map
             .borrow()
             .get_key_value(&UnsafeBumpRefStr(val as *const str))
@@ -169,38 +187,44 @@ impl<'g> Interner<'g> {
     }
 
     #[cold]
-    fn intern_slow<'a>(&'a self, val: &str) -> Interned<'a, 'g> {
-        let interned = self.arena.alloc_str(val);
+    fn intern_slow(&self, val: &str) -> Interned<'s, 'g> {
+        // Note: Reborrow here which "downgrades" the mutable reference. This makes miri happy.
+        let interned = &*self.storage.arena.alloc_str(val);
         let prev = self
+            .storage
             .map
             .borrow_mut()
             .insert(UnsafeBumpRefStr(interned as *const str), ());
         assert!(prev.is_none());
-        Interned(interned, self.id)
+        Interned(
+            unsafe {
+                // SAFETY: The interned string has the lifetime of the storage `'s`.
+                mem::transmute(interned)
+            },
+            self.id,
+        )
     }
 
-    pub fn typed_interner<'a, K: Internable>(&'a mut self) -> TypedInterner<'a, 'g, K> {
+    pub fn typed_interner<'a, K: Internable>(&'a mut self) -> TypedInterner<'a, 's, 'g, K> {
         TypedInterner {
             inner: self,
             map: RefCell::new(HashMap::default()),
-            _borrow: PhantomData,
         }
     }
 }
 
-pub struct TypedInterner<'a, 'g, K> {
-    inner: &'a Interner<'g>,
+pub struct TypedInterner<'a, 's, 'g, K> {
+    inner: &'a mut Interner<'s, 'g>,
     map: RefCell<HashMap<K, *const str>>,
-    _borrow: PhantomData<&'a mut Interner<'g>>,
 }
 
 /// SAFETY: For this to be sound and ergonomic, [`Interner::typed_interner`]
 /// must take a mutable self reference.
-unsafe impl<'a, 'g, K: Internable> Send for TypedInterner<'a, 'g, K> {}
+unsafe impl<'a, 's, 'g, K: Internable> Send for TypedInterner<'a, 's, 'g, K> {}
 
-impl<'a, 'g, K: Internable> TypedInterner<'a, 'g, K> {
+impl<'a, 's, 'g, K: Internable> TypedInterner<'a, 's, 'g, K> {
     #[inline]
-    pub fn intern(&self, val: K) -> Interned<'a, 'g> {
+    pub fn intern(&self, val: K) -> Interned<'s, 'g> {
         match self.map.borrow_mut().entry(val) {
             Entry::Occupied(occupied) => {
                 Interned(
@@ -216,14 +240,14 @@ impl<'a, 'g, K: Internable> TypedInterner<'a, 'g, K> {
     }
 
     #[inline]
-    pub fn intern_str(&self, val: &str) -> Interned<'a, 'g> {
+    pub fn intern_str(&self, val: &str) -> Interned<'s, 'g> {
         self.inner.intern(val)
     }
 
     #[cold]
-    fn intern_slow(&self, vacant: VacantEntry<K, *const str>, val: K) -> Interned<'a, 'g> {
-        let mut inner_map = self.inner.map.borrow_mut();
-        let (is_new, interned_ptr) = match val.intern(&self.inner.arena) {
+    fn intern_slow(&self, vacant: VacantEntry<K, *const str>, val: K) -> Interned<'s, 'g> {
+        let mut inner_map = self.inner.storage.map.borrow_mut();
+        let (is_new, interned_ptr) = match val.intern(&self.inner.storage.arena) {
             CowStr::Borrowed(val) => {
                 match inner_map.get_key_value(&UnsafeBumpRefStr(val as *const str)) {
                     Some((entry, _)) => (false, entry.0),
@@ -254,19 +278,19 @@ impl<'a, 'g, K: Internable> TypedInterner<'a, 'g, K> {
 }
 
 pub trait OptionInternExt: private::Sealed {
-    fn intern_in<'t, 'g>(&self, interner: &'t Interner<'g>) -> Option<Interned<'t, 'g>>;
+    fn intern_in<'s, 'g>(&self, interner: &Interner<'s, 'g>) -> Option<Interned<'s, 'g>>;
 }
 
 impl<'a> OptionInternExt for Option<&'a str> {
     #[inline]
-    fn intern_in<'t, 'g>(&self, interner: &'t Interner<'g>) -> Option<Interned<'t, 'g>> {
+    fn intern_in<'s, 'g>(&self, interner: &Interner<'s, 'g>) -> Option<Interned<'s, 'g>> {
         self.map(|val| interner.intern(val))
     }
 }
 
 impl OptionInternExt for Option<String> {
     #[inline]
-    fn intern_in<'t, 'g>(&self, interner: &'t Interner<'g>) -> Option<Interned<'t, 'g>> {
+    fn intern_in<'s, 'g>(&self, interner: &Interner<'s, 'g>) -> Option<Interned<'s, 'g>> {
         self.as_deref().map(|val| interner.intern(val))
     }
 }
@@ -275,26 +299,36 @@ pub trait OptionTypedInternExt<I>: private::Sealed
 where
     I: Internable,
 {
-    fn intern_in<'t, 'g>(self, interner: &'t TypedInterner<'t, 'g, I>) -> Option<Interned<'t, 'g>>;
+    fn intern_in<'s, 'g>(self, interner: &TypedInterner<'_, 's, 'g, I>)
+        -> Option<Interned<'s, 'g>>;
 }
 
 impl<T: Internable> OptionTypedInternExt<T> for Option<T> {
     #[inline]
-    fn intern_in<'t, 'g>(self, interner: &'t TypedInterner<'t, 'g, T>) -> Option<Interned<'t, 'g>> {
+    fn intern_in<'s, 'g>(
+        self,
+        interner: &TypedInterner<'_, 's, 'g, T>,
+    ) -> Option<Interned<'s, 'g>> {
         self.map(|val| interner.intern(val))
     }
 }
 
 impl<'a, T: Internable> OptionTypedInternExt<T> for Option<&'a String> {
     #[inline]
-    fn intern_in<'t, 'g>(self, interner: &'t TypedInterner<'t, 'g, T>) -> Option<Interned<'t, 'g>> {
+    fn intern_in<'s, 'g>(
+        self,
+        interner: &TypedInterner<'_, 's, 'g, T>,
+    ) -> Option<Interned<'s, 'g>> {
         self.map(|val| interner.intern_str(val))
     }
 }
 
 impl<'a, T: Internable> OptionTypedInternExt<T> for Option<&'a str> {
     #[inline]
-    fn intern_in<'t, 'g>(self, interner: &'t TypedInterner<'t, 'g, T>) -> Option<Interned<'t, 'g>> {
+    fn intern_in<'s, 'g>(
+        self,
+        interner: &TypedInterner<'_, 's, 'g, T>,
+    ) -> Option<Interned<'s, 'g>> {
         self.map(|val| interner.intern_str(val))
     }
 }
@@ -320,11 +354,13 @@ pub mod internal {
 macro_rules! make_interner {
     ($name:ident) => {
         $crate::internal::generativity::make_guard!(guard);
-        let $name = $crate::Interner::new(guard);
+        let mut storage = $crate::Storage::new();
+        let $name = $crate::Interner::new(&mut storage, guard);
     };
     (mut $name:ident) => {
         $crate::internal::generativity::make_guard!(guard);
-        let mut $name = $crate::Interner::new(guard);
+        let mut storage = $crate::Storage::new();
+        let mut $name = $crate::Interner::new(&mut storage, guard);
     };
 }
 
@@ -395,20 +431,20 @@ mod tests {
     }
 
     #[test]
-    fn intern_after_typed_drop() {
+    fn intern_after_typed_drop_ptr() {
         make_interner!(mut interner);
         let a = interner.typed_interner::<i32>().intern(42).as_ptr();
         let b = interner.typed_interner::<i32>().intern(42).as_ptr();
         assert_eq!(a, b);
     }
 
-    // #[test]
-    // fn intern_after_typed_drop2() {
-    //     make_interner!(mut interner);
-    //     let _interner1 = interner.typed_interner::<i32>();
-    //     let interner2 = interner.typed_interner::<i32>();
-    //     let _b = interner2.intern(42);
-    // }
+    #[test]
+    fn intern_after_typed_drop() {
+        make_interner!(mut interner);
+        let a = interner.typed_interner::<i32>().intern(23);
+        let b = interner.typed_interner::<i32>().intern(23);
+        assert_eq!(a, b);
+    }
 
     #[test]
     fn interner_async() {
@@ -467,5 +503,21 @@ mod tests {
             Some("123").intern_in(&interner),
             Some(interner.intern_str("123"))
         );
+    }
+
+    #[test]
+    fn storage_lifetime() {
+        make_interner!(mut interner);
+        let (a, b, c) = {
+            let a = interner.intern("420");
+            let t = interner.typed_interner::<i32>();
+            let b = t.intern(420);
+            drop(t);
+            let t = interner.typed_interner::<i32>();
+            let c = t.intern(420);
+            (a, b, c)
+        };
+        assert_eq!(a, b);
+        assert_eq!(b, c);
     }
 }

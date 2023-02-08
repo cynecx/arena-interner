@@ -1,0 +1,51 @@
+error[E0597]: `storage` does not live long enough
+ --> tests/ui/drop1.rs:5:9
+  |
+4 |     let a = {
+  |         - borrow later stored here
+5 |         make_interner!(mut interner);
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ borrowed value does not live long enough
+...
+8 |     };
+  |     - `storage` dropped here while still borrowed
+  |
+  = note: this error originates in the macro `make_interner` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0597]: `tag` does not live long enough
+ --> tests/ui/drop1.rs:5:9
+  |
+4 |     let a = {
+  |         - borrow later stored here
+5 |         make_interner!(mut interner);
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ borrowed value does not live long enough
+...
+8 |     };
+  |     - `tag` dropped here while still borrowed
+  |
+  = note: this error originates in the macro `$crate::internal::generativity::make_guard` which comes from the expansion of the macro `make_interner` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0597]: `storage` does not live long enough
+  --> tests/ui/drop1.rs:14:9
+   |
+13 |     let a = {
+   |         - borrow later stored here
+14 |         make_interner!(interner);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^ borrowed value does not live long enough
+15 |         interner.intern("hello")
+16 |     };
+   |     - `storage` dropped here while still borrowed
+   |
+   = note: this error originates in the macro `make_interner` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0597]: `tag` does not live long enough
+  --> tests/ui/drop1.rs:14:9
+   |
+13 |     let a = {
+   |         - borrow later stored here
+14 |         make_interner!(interner);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^ borrowed value does not live long enough
+15 |         interner.intern("hello")
+16 |     };
+   |     - `tag` dropped here while still borrowed
+   |
+   = note: this error originates in the macro `$crate::internal::generativity::make_guard` which comes from the expansion of the macro `make_interner` (in Nightly builds, run with -Z macro-backtrace for more info)
