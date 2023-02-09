@@ -4,7 +4,6 @@ use std::{
     fmt,
     hash::{Hash, Hasher},
     marker::PhantomData,
-    mem,
     ops::Deref,
 };
 
@@ -153,7 +152,7 @@ impl Storage {
 }
 
 pub struct Interner<'s, 'g> {
-    storage: &'s mut Storage,
+    storage: &'s Storage,
     id: generativity::Id<'g>,
 }
 
@@ -196,13 +195,7 @@ impl<'s, 'g> Interner<'s, 'g> {
             .borrow_mut()
             .insert(UnsafeBumpRefStr(interned as *const str), ());
         assert!(prev.is_none());
-        Interned(
-            unsafe {
-                // SAFETY: The interned string has the lifetime of the storage `'s`.
-                mem::transmute(interned)
-            },
-            self.id,
-        )
+        Interned(interned, self.id)
     }
 
     pub fn typed_interner<'a, K: Internable>(&'a mut self) -> TypedInterner<'a, 's, 'g, K> {
@@ -214,7 +207,7 @@ impl<'s, 'g> Interner<'s, 'g> {
 }
 
 pub struct TypedInterner<'a, 's, 'g, K> {
-    inner: &'a mut Interner<'s, 'g>,
+    inner: &'a Interner<'s, 'g>,
     map: RefCell<HashMap<K, *const str>>,
 }
 

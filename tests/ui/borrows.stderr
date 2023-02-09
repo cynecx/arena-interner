@@ -1,0 +1,20 @@
+error[E0499]: cannot borrow `interner` as mutable more than once at a time
+ --> tests/ui/borrows.rs:6:14
+  |
+5 |     let t1 = interner.typed_interner::<i32>();
+  |              -------------------------------- first mutable borrow occurs here
+6 |     let t2 = interner.typed_interner::<i32>();
+  |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ second mutable borrow occurs here
+7 |     let _a = t1.intern(1);
+  |              ------------ first borrow later used here
+
+error[E0502]: cannot borrow `interner` as immutable because it is also borrowed as mutable
+  --> tests/ui/borrows.rs:16:14
+   |
+14 |     let t = interner.typed_interner::<i32>();
+   |             -------------------------------- mutable borrow occurs here
+15 |     let _b = t.intern(1);
+16 |     let _c = interner.intern("1");
+   |              ^^^^^^^^^^^^^^^^^^^^ immutable borrow occurs here
+17 |     let _d = t.intern(1);
+   |              ----------- mutable borrow later used here
