@@ -133,12 +133,16 @@ impl Eq for UnsafeBumpRefStr {}
 
 pub struct Storage {
     // Drop the `map` first, then the bump allocator `arena`.
-    // SAFETY: `UnsafeBumpRefStr` is a reference into the bump allocator `arena`.
+    // SAFETY: `UnsafeBumpRefStr` is a reference into the bump allocator `arena`. We have to resort
+    // to using unsafe here since self-referential structs in Rust is tricky business.
     map: RefCell<HashMap<UnsafeBumpRefStr, ()>>,
     arena: Bump,
+    // The storage is explicitly not `Sync` (but `Send`, see below).
     _not_sync: PhantomData<*const ()>,
 }
 
+// SAFETY: `Storage` is `Send` but not `Sync`. This is safe because the `Interner` mutably borrows
+// `Storage` and the `Interner` itself is also `Send` but not `Sync`.
 unsafe impl Send for Storage {}
 
 impl Storage {
@@ -467,6 +471,22 @@ mod tests {
                 int_interner.intern(1);
             });
         });
+    }
+
+    #[test]
+    fn interner_threads_escape() {
+        make_interner!(mut interner);
+        let mut int_interner = interner.typed_interner::<i32>();
+        let (a, b) = std::thread::scope(|scope| {
+            let int_interner = &mut int_interner;
+            scope
+                .spawn(move || (int_interner.intern(1), int_interner.intern(2)))
+                .join()
+                .unwrap()
+        });
+        let c = int_interner.intern(1);
+        assert_eq!(a, c);
+        assert_ne!(b, c);
     }
 
     #[test]
