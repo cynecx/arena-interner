@@ -69,6 +69,16 @@ pub enum CowStr<'b> {
     Owned(bumpalo::collections::String<'b>),
 }
 
+impl<'b> CowStr<'b> {
+    #[inline]
+    fn as_str(&'b self) -> &'b str {
+        match self {
+            Self::Borrowed(borrowed) => borrowed,
+            Self::Owned(owned) => owned.as_str(),
+        }
+    }
+}
+
 impl<'b> From<bumpalo::collections::String<'b>> for CowStr<'b> {
     #[inline]
     fn from(val: bumpalo::collections::String<'b>) -> Self {
@@ -152,6 +162,13 @@ impl Storage {
             map: RefCell::new(HashMap::default()),
             _not_sync: PhantomData,
         }
+    }
+}
+
+impl Default for Storage {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -244,24 +261,20 @@ impl<'a, 's, 'g, K: Internable> TypedInterner<'a, 's, 'g, K> {
     #[cold]
     fn intern_slow(&self, vacant: VacantEntry<K, *const str>, val: K) -> Interned<'s, 'g> {
         let mut inner_map = self.inner.storage.map.borrow_mut();
-        let (is_new, interned_ptr) = match val.intern(&self.inner.storage.arena) {
-            CowStr::Borrowed(val) => {
-                match inner_map.get_key_value(&UnsafeBumpRefStr(val as *const str)) {
-                    Some((entry, _)) => (false, entry.0),
-                    None => (true, val as *const str),
+        let interned = val.intern(&self.inner.storage.arena);
+        let interned_ptr =
+            match inner_map.get_key_value(&UnsafeBumpRefStr(interned.as_str() as *const str)) {
+                Some((entry, _)) => entry.0,
+                None => {
+                    let interned_ptr = match interned {
+                        CowStr::Borrowed(val) => val as *const str,
+                        CowStr::Owned(val) => val.into_bump_str() as *const str,
+                    };
+                    let prev = inner_map.insert(UnsafeBumpRefStr(interned_ptr), ());
+                    assert!(prev.is_none());
+                    interned_ptr
                 }
-            }
-            CowStr::Owned(val) => {
-                match inner_map.get_key_value(&UnsafeBumpRefStr(val.as_str() as *const str)) {
-                    Some((entry, _)) => (false, entry.0),
-                    None => (true, val.into_bump_str() as *const str),
-                }
-            }
-        };
-        if is_new {
-            let prev = inner_map.insert(UnsafeBumpRefStr(interned_ptr), ());
-            assert!(prev.is_none());
-        }
+            };
         vacant.insert(interned_ptr);
         Interned(
             unsafe {
@@ -420,6 +433,34 @@ mod tests {
 
             let s = &*format!("{}", val);
             let c = int_interner.intern_str(s);
+
+            assert_eq!(a, c);
+            assert_eq!(&*a, &*c);
+            assert_eq!(a.as_ptr(), c.as_ptr());
+        }
+    }
+
+    #[test]
+    fn interner_ints_reverse_order() {
+        make_interner!(mut interner);
+        let int_interner = interner.typed_interner();
+
+        let vals = &[
+            0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 0xFF, 0xFFFF, 0xFFFFFF, 0xFFFFFFF, -1, -2, -3, -4, -5,
+            -6, -8, -9, -10, -0xFF, -0xFFFF, -0xFFFFFF,
+        ];
+
+        for &val in vals {
+            // Intern a string before using the typed interner.
+            let s = &*format!("{}", val);
+            let c = int_interner.intern_str(s);
+
+            let a = int_interner.intern(val);
+            let b = int_interner.intern(val);
+
+            assert_eq!(a, b);
+            assert_eq!(&*a, &*b);
+            assert_eq!(a.as_ptr(), b.as_ptr());
 
             assert_eq!(a, c);
             assert_eq!(&*a, &*c);
