@@ -1,14 +1,14 @@
-error[E0277]: `RefCell<HashMap<i32, *const str, ahash::random_state::RandomState>>` cannot be shared between threads safely
+error[E0277]: `RefCell<hashbrown::map::HashMap<i32, *const str>>` cannot be shared between threads safely
  --> tests/ui/send_sync.rs:9:13
   |
 9 |     is_send(&interner); // should fail
-  |     ------- ^^^^^^^^^ `RefCell<HashMap<i32, *const str, ahash::random_state::RandomState>>` cannot be shared between threads safely
+  |     ------- ^^^^^^^^^ `RefCell<hashbrown::map::HashMap<i32, *const str>>` cannot be shared between threads safely
   |     |
   |     required by a bound introduced by this call
   |
-  = help: within `TypedInterner<'_, '_, '_, i32>`, the trait `Sync` is not implemented for `RefCell<HashMap<i32, *const str, ahash::random_state::RandomState>>`
-  = note: required because it appears within the type `TypedInterner<'_, '_, '_, i32>`
-  = note: required for `&TypedInterner<'_, '_, '_, i32>` to implement `Send`
+  = help: within `TypedInterner<'_, '_, '_, str, i32>`, the trait `Sync` is not implemented for `RefCell<hashbrown::map::HashMap<i32, *const str>>`
+  = note: required because it appears within the type `TypedInterner<'_, '_, '_, str, i32>`
+  = note: required for `&TypedInterner<'_, '_, '_, str, i32>` to implement `Send`
 note: required by a bound in `is_send`
  --> tests/ui/send_sync.rs:3:15
   |
@@ -19,21 +19,21 @@ help: consider dereferencing here
 9 |     is_send(*&interner); // should fail
   |             +
 
-error[E0277]: `RefCell<HashMap<arena_interner::UnsafeBumpRefStr, (), ahash::random_state::RandomState>>` cannot be shared between threads safely
+error[E0277]: `RefCell<hashbrown::map::HashMap<arena_interner::UnsafeBumpRef<str>, ()>>` cannot be shared between threads safely
  --> tests/ui/send_sync.rs:9:13
   |
 9 |     is_send(&interner); // should fail
-  |     ------- ^^^^^^^^^ `RefCell<HashMap<arena_interner::UnsafeBumpRefStr, (), ahash::random_state::RandomState>>` cannot be shared between threads safely
+  |     ------- ^^^^^^^^^ `RefCell<hashbrown::map::HashMap<arena_interner::UnsafeBumpRef<str>, ()>>` cannot be shared between threads safely
   |     |
   |     required by a bound introduced by this call
   |
-  = help: within `TypedInterner<'_, '_, '_, i32>`, the trait `Sync` is not implemented for `RefCell<HashMap<arena_interner::UnsafeBumpRefStr, (), ahash::random_state::RandomState>>`
-  = note: required because it appears within the type `Storage`
-  = note: required because it appears within the type `&Storage`
-  = note: required because it appears within the type `Interner<'_, '_>`
-  = note: required because it appears within the type `&Interner<'_, '_>`
-  = note: required because it appears within the type `TypedInterner<'_, '_, '_, i32>`
-  = note: required for `&TypedInterner<'_, '_, '_, i32>` to implement `Send`
+  = help: within `TypedInterner<'_, '_, '_, str, i32>`, the trait `Sync` is not implemented for `RefCell<hashbrown::map::HashMap<arena_interner::UnsafeBumpRef<str>, ()>>`
+  = note: required because it appears within the type `Storage<str>`
+  = note: required because it appears within the type `&Storage<str>`
+  = note: required because it appears within the type `Interner<'_, '_, str>`
+  = note: required because it appears within the type `&Interner<'_, '_, str>`
+  = note: required because it appears within the type `TypedInterner<'_, '_, '_, str, i32>`
+  = note: required for `&TypedInterner<'_, '_, '_, str, i32>` to implement `Send`
 note: required by a bound in `is_send`
  --> tests/ui/send_sync.rs:3:15
   |
@@ -52,14 +52,14 @@ error[E0277]: `Cell<NonNull<bumpalo::ChunkFooter>>` cannot be shared between thr
   |     |
   |     required by a bound introduced by this call
   |
-  = help: within `TypedInterner<'_, '_, '_, i32>`, the trait `Sync` is not implemented for `Cell<NonNull<bumpalo::ChunkFooter>>`
-  = note: required because it appears within the type `Bump`
-  = note: required because it appears within the type `Storage`
-  = note: required because it appears within the type `&Storage`
-  = note: required because it appears within the type `Interner<'_, '_>`
-  = note: required because it appears within the type `&Interner<'_, '_>`
-  = note: required because it appears within the type `TypedInterner<'_, '_, '_, i32>`
-  = note: required for `&TypedInterner<'_, '_, '_, i32>` to implement `Send`
+  = help: within `TypedInterner<'_, '_, '_, str, i32>`, the trait `Sync` is not implemented for `Cell<NonNull<bumpalo::ChunkFooter>>`
+  = note: required because it appears within the type `bumpalo::Bump`
+  = note: required because it appears within the type `Storage<str>`
+  = note: required because it appears within the type `&Storage<str>`
+  = note: required because it appears within the type `Interner<'_, '_, str>`
+  = note: required because it appears within the type `&Interner<'_, '_, str>`
+  = note: required because it appears within the type `TypedInterner<'_, '_, '_, str, i32>`
+  = note: required for `&TypedInterner<'_, '_, '_, str, i32>` to implement `Send`
 note: required by a bound in `is_send`
  --> tests/ui/send_sync.rs:3:15
   |
@@ -78,14 +78,14 @@ error[E0277]: `Cell<Option<usize>>` cannot be shared between threads safely
   |     |
   |     required by a bound introduced by this call
   |
-  = help: within `TypedInterner<'_, '_, '_, i32>`, the trait `Sync` is not implemented for `Cell<Option<usize>>`
-  = note: required because it appears within the type `Bump`
-  = note: required because it appears within the type `Storage`
-  = note: required because it appears within the type `&Storage`
-  = note: required because it appears within the type `Interner<'_, '_>`
-  = note: required because it appears within the type `&Interner<'_, '_>`
-  = note: required because it appears within the type `TypedInterner<'_, '_, '_, i32>`
-  = note: required for `&TypedInterner<'_, '_, '_, i32>` to implement `Send`
+  = help: within `TypedInterner<'_, '_, '_, str, i32>`, the trait `Sync` is not implemented for `Cell<Option<usize>>`
+  = note: required because it appears within the type `bumpalo::Bump`
+  = note: required because it appears within the type `Storage<str>`
+  = note: required because it appears within the type `&Storage<str>`
+  = note: required because it appears within the type `Interner<'_, '_, str>`
+  = note: required because it appears within the type `&Interner<'_, '_, str>`
+  = note: required because it appears within the type `TypedInterner<'_, '_, '_, str, i32>`
+  = note: required for `&TypedInterner<'_, '_, '_, str, i32>` to implement `Send`
 note: required by a bound in `is_send`
  --> tests/ui/send_sync.rs:3:15
   |
@@ -104,14 +104,14 @@ error[E0277]: `*const ()` cannot be shared between threads safely
   |     |
   |     required by a bound introduced by this call
   |
-  = help: within `TypedInterner<'_, '_, '_, i32>`, the trait `Sync` is not implemented for `*const ()`
+  = help: within `TypedInterner<'_, '_, '_, str, i32>`, the trait `Sync` is not implemented for `*const ()`
   = note: required because it appears within the type `PhantomData<*const ()>`
-  = note: required because it appears within the type `Storage`
-  = note: required because it appears within the type `&Storage`
-  = note: required because it appears within the type `Interner<'_, '_>`
-  = note: required because it appears within the type `&Interner<'_, '_>`
-  = note: required because it appears within the type `TypedInterner<'_, '_, '_, i32>`
-  = note: required for `&TypedInterner<'_, '_, '_, i32>` to implement `Send`
+  = note: required because it appears within the type `Storage<str>`
+  = note: required because it appears within the type `&Storage<str>`
+  = note: required because it appears within the type `Interner<'_, '_, str>`
+  = note: required because it appears within the type `&Interner<'_, '_, str>`
+  = note: required because it appears within the type `TypedInterner<'_, '_, '_, str, i32>`
+  = note: required for `&TypedInterner<'_, '_, '_, str, i32>` to implement `Send`
 note: required by a bound in `is_send`
  --> tests/ui/send_sync.rs:3:15
   |
@@ -122,38 +122,38 @@ help: consider dereferencing here
 9 |     is_send(*&interner); // should fail
   |             +
 
-error[E0277]: `RefCell<HashMap<i32, *const str, ahash::random_state::RandomState>>` cannot be shared between threads safely
+error[E0277]: `RefCell<hashbrown::map::HashMap<i32, *const str>>` cannot be shared between threads safely
   --> tests/ui/send_sync.rs:10:13
    |
 10 |     is_sync(&interner); // should fail
-   |     ------- ^^^^^^^^^ `RefCell<HashMap<i32, *const str, ahash::random_state::RandomState>>` cannot be shared between threads safely
+   |     ------- ^^^^^^^^^ `RefCell<hashbrown::map::HashMap<i32, *const str>>` cannot be shared between threads safely
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `&TypedInterner<'_, '_, '_, i32>`, the trait `Sync` is not implemented for `RefCell<HashMap<i32, *const str, ahash::random_state::RandomState>>`
-   = note: required because it appears within the type `TypedInterner<'_, '_, '_, i32>`
-   = note: required because it appears within the type `&TypedInterner<'_, '_, '_, i32>`
+   = help: within `&TypedInterner<'_, '_, '_, str, i32>`, the trait `Sync` is not implemented for `RefCell<hashbrown::map::HashMap<i32, *const str>>`
+   = note: required because it appears within the type `TypedInterner<'_, '_, '_, str, i32>`
+   = note: required because it appears within the type `&TypedInterner<'_, '_, '_, str, i32>`
 note: required by a bound in `is_sync`
   --> tests/ui/send_sync.rs:4:15
    |
 4  | fn is_sync<T: Sync>(val: T) {}
    |               ^^^^ required by this bound in `is_sync`
 
-error[E0277]: `RefCell<HashMap<arena_interner::UnsafeBumpRefStr, (), ahash::random_state::RandomState>>` cannot be shared between threads safely
+error[E0277]: `RefCell<hashbrown::map::HashMap<arena_interner::UnsafeBumpRef<str>, ()>>` cannot be shared between threads safely
   --> tests/ui/send_sync.rs:10:13
    |
 10 |     is_sync(&interner); // should fail
-   |     ------- ^^^^^^^^^ `RefCell<HashMap<arena_interner::UnsafeBumpRefStr, (), ahash::random_state::RandomState>>` cannot be shared between threads safely
+   |     ------- ^^^^^^^^^ `RefCell<hashbrown::map::HashMap<arena_interner::UnsafeBumpRef<str>, ()>>` cannot be shared between threads safely
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `&TypedInterner<'_, '_, '_, i32>`, the trait `Sync` is not implemented for `RefCell<HashMap<arena_interner::UnsafeBumpRefStr, (), ahash::random_state::RandomState>>`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required because it appears within the type `&Interner<'_, '_>`
-   = note: required because it appears within the type `TypedInterner<'_, '_, '_, i32>`
-   = note: required because it appears within the type `&TypedInterner<'_, '_, '_, i32>`
+   = help: within `&TypedInterner<'_, '_, '_, str, i32>`, the trait `Sync` is not implemented for `RefCell<hashbrown::map::HashMap<arena_interner::UnsafeBumpRef<str>, ()>>`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required because it appears within the type `&Interner<'_, '_, str>`
+   = note: required because it appears within the type `TypedInterner<'_, '_, '_, str, i32>`
+   = note: required because it appears within the type `&TypedInterner<'_, '_, '_, str, i32>`
 note: required by a bound in `is_sync`
   --> tests/ui/send_sync.rs:4:15
    |
@@ -168,14 +168,14 @@ error[E0277]: `Cell<NonNull<bumpalo::ChunkFooter>>` cannot be shared between thr
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `&TypedInterner<'_, '_, '_, i32>`, the trait `Sync` is not implemented for `Cell<NonNull<bumpalo::ChunkFooter>>`
-   = note: required because it appears within the type `Bump`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required because it appears within the type `&Interner<'_, '_>`
-   = note: required because it appears within the type `TypedInterner<'_, '_, '_, i32>`
-   = note: required because it appears within the type `&TypedInterner<'_, '_, '_, i32>`
+   = help: within `&TypedInterner<'_, '_, '_, str, i32>`, the trait `Sync` is not implemented for `Cell<NonNull<bumpalo::ChunkFooter>>`
+   = note: required because it appears within the type `bumpalo::Bump`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required because it appears within the type `&Interner<'_, '_, str>`
+   = note: required because it appears within the type `TypedInterner<'_, '_, '_, str, i32>`
+   = note: required because it appears within the type `&TypedInterner<'_, '_, '_, str, i32>`
 note: required by a bound in `is_sync`
   --> tests/ui/send_sync.rs:4:15
    |
@@ -190,14 +190,14 @@ error[E0277]: `Cell<Option<usize>>` cannot be shared between threads safely
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `&TypedInterner<'_, '_, '_, i32>`, the trait `Sync` is not implemented for `Cell<Option<usize>>`
-   = note: required because it appears within the type `Bump`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required because it appears within the type `&Interner<'_, '_>`
-   = note: required because it appears within the type `TypedInterner<'_, '_, '_, i32>`
-   = note: required because it appears within the type `&TypedInterner<'_, '_, '_, i32>`
+   = help: within `&TypedInterner<'_, '_, '_, str, i32>`, the trait `Sync` is not implemented for `Cell<Option<usize>>`
+   = note: required because it appears within the type `bumpalo::Bump`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required because it appears within the type `&Interner<'_, '_, str>`
+   = note: required because it appears within the type `TypedInterner<'_, '_, '_, str, i32>`
+   = note: required because it appears within the type `&TypedInterner<'_, '_, '_, str, i32>`
 note: required by a bound in `is_sync`
   --> tests/ui/send_sync.rs:4:15
    |
@@ -212,52 +212,52 @@ error[E0277]: `*const ()` cannot be shared between threads safely
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `&TypedInterner<'_, '_, '_, i32>`, the trait `Sync` is not implemented for `*const ()`
+   = help: within `&TypedInterner<'_, '_, '_, str, i32>`, the trait `Sync` is not implemented for `*const ()`
    = note: required because it appears within the type `PhantomData<*const ()>`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required because it appears within the type `&Interner<'_, '_>`
-   = note: required because it appears within the type `TypedInterner<'_, '_, '_, i32>`
-   = note: required because it appears within the type `&TypedInterner<'_, '_, '_, i32>`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required because it appears within the type `&Interner<'_, '_, str>`
+   = note: required because it appears within the type `TypedInterner<'_, '_, '_, str, i32>`
+   = note: required because it appears within the type `&TypedInterner<'_, '_, '_, str, i32>`
 note: required by a bound in `is_sync`
   --> tests/ui/send_sync.rs:4:15
    |
 4  | fn is_sync<T: Sync>(val: T) {}
    |               ^^^^ required by this bound in `is_sync`
 
-error[E0277]: `RefCell<HashMap<i32, *const str, ahash::random_state::RandomState>>` cannot be shared between threads safely
+error[E0277]: `RefCell<hashbrown::map::HashMap<i32, *const str>>` cannot be shared between threads safely
   --> tests/ui/send_sync.rs:12:13
    |
 12 |     is_sync(&mut interner); // should fail
-   |     ------- ^^^^^^^^^^^^^ `RefCell<HashMap<i32, *const str, ahash::random_state::RandomState>>` cannot be shared between threads safely
+   |     ------- ^^^^^^^^^^^^^ `RefCell<hashbrown::map::HashMap<i32, *const str>>` cannot be shared between threads safely
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `&mut TypedInterner<'_, '_, '_, i32>`, the trait `Sync` is not implemented for `RefCell<HashMap<i32, *const str, ahash::random_state::RandomState>>`
-   = note: required because it appears within the type `TypedInterner<'_, '_, '_, i32>`
-   = note: required because it appears within the type `&mut TypedInterner<'_, '_, '_, i32>`
+   = help: within `&mut TypedInterner<'_, '_, '_, str, i32>`, the trait `Sync` is not implemented for `RefCell<hashbrown::map::HashMap<i32, *const str>>`
+   = note: required because it appears within the type `TypedInterner<'_, '_, '_, str, i32>`
+   = note: required because it appears within the type `&mut TypedInterner<'_, '_, '_, str, i32>`
 note: required by a bound in `is_sync`
   --> tests/ui/send_sync.rs:4:15
    |
 4  | fn is_sync<T: Sync>(val: T) {}
    |               ^^^^ required by this bound in `is_sync`
 
-error[E0277]: `RefCell<HashMap<arena_interner::UnsafeBumpRefStr, (), ahash::random_state::RandomState>>` cannot be shared between threads safely
+error[E0277]: `RefCell<hashbrown::map::HashMap<arena_interner::UnsafeBumpRef<str>, ()>>` cannot be shared between threads safely
   --> tests/ui/send_sync.rs:12:13
    |
 12 |     is_sync(&mut interner); // should fail
-   |     ------- ^^^^^^^^^^^^^ `RefCell<HashMap<arena_interner::UnsafeBumpRefStr, (), ahash::random_state::RandomState>>` cannot be shared between threads safely
+   |     ------- ^^^^^^^^^^^^^ `RefCell<hashbrown::map::HashMap<arena_interner::UnsafeBumpRef<str>, ()>>` cannot be shared between threads safely
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `&mut TypedInterner<'_, '_, '_, i32>`, the trait `Sync` is not implemented for `RefCell<HashMap<arena_interner::UnsafeBumpRefStr, (), ahash::random_state::RandomState>>`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required because it appears within the type `&Interner<'_, '_>`
-   = note: required because it appears within the type `TypedInterner<'_, '_, '_, i32>`
-   = note: required because it appears within the type `&mut TypedInterner<'_, '_, '_, i32>`
+   = help: within `&mut TypedInterner<'_, '_, '_, str, i32>`, the trait `Sync` is not implemented for `RefCell<hashbrown::map::HashMap<arena_interner::UnsafeBumpRef<str>, ()>>`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required because it appears within the type `&Interner<'_, '_, str>`
+   = note: required because it appears within the type `TypedInterner<'_, '_, '_, str, i32>`
+   = note: required because it appears within the type `&mut TypedInterner<'_, '_, '_, str, i32>`
 note: required by a bound in `is_sync`
   --> tests/ui/send_sync.rs:4:15
    |
@@ -272,14 +272,14 @@ error[E0277]: `Cell<NonNull<bumpalo::ChunkFooter>>` cannot be shared between thr
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `&mut TypedInterner<'_, '_, '_, i32>`, the trait `Sync` is not implemented for `Cell<NonNull<bumpalo::ChunkFooter>>`
-   = note: required because it appears within the type `Bump`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required because it appears within the type `&Interner<'_, '_>`
-   = note: required because it appears within the type `TypedInterner<'_, '_, '_, i32>`
-   = note: required because it appears within the type `&mut TypedInterner<'_, '_, '_, i32>`
+   = help: within `&mut TypedInterner<'_, '_, '_, str, i32>`, the trait `Sync` is not implemented for `Cell<NonNull<bumpalo::ChunkFooter>>`
+   = note: required because it appears within the type `bumpalo::Bump`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required because it appears within the type `&Interner<'_, '_, str>`
+   = note: required because it appears within the type `TypedInterner<'_, '_, '_, str, i32>`
+   = note: required because it appears within the type `&mut TypedInterner<'_, '_, '_, str, i32>`
 note: required by a bound in `is_sync`
   --> tests/ui/send_sync.rs:4:15
    |
@@ -294,14 +294,14 @@ error[E0277]: `Cell<Option<usize>>` cannot be shared between threads safely
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `&mut TypedInterner<'_, '_, '_, i32>`, the trait `Sync` is not implemented for `Cell<Option<usize>>`
-   = note: required because it appears within the type `Bump`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required because it appears within the type `&Interner<'_, '_>`
-   = note: required because it appears within the type `TypedInterner<'_, '_, '_, i32>`
-   = note: required because it appears within the type `&mut TypedInterner<'_, '_, '_, i32>`
+   = help: within `&mut TypedInterner<'_, '_, '_, str, i32>`, the trait `Sync` is not implemented for `Cell<Option<usize>>`
+   = note: required because it appears within the type `bumpalo::Bump`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required because it appears within the type `&Interner<'_, '_, str>`
+   = note: required because it appears within the type `TypedInterner<'_, '_, '_, str, i32>`
+   = note: required because it appears within the type `&mut TypedInterner<'_, '_, '_, str, i32>`
 note: required by a bound in `is_sync`
   --> tests/ui/send_sync.rs:4:15
    |
@@ -316,33 +316,33 @@ error[E0277]: `*const ()` cannot be shared between threads safely
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `&mut TypedInterner<'_, '_, '_, i32>`, the trait `Sync` is not implemented for `*const ()`
+   = help: within `&mut TypedInterner<'_, '_, '_, str, i32>`, the trait `Sync` is not implemented for `*const ()`
    = note: required because it appears within the type `PhantomData<*const ()>`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required because it appears within the type `&Interner<'_, '_>`
-   = note: required because it appears within the type `TypedInterner<'_, '_, '_, i32>`
-   = note: required because it appears within the type `&mut TypedInterner<'_, '_, '_, i32>`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required because it appears within the type `&Interner<'_, '_, str>`
+   = note: required because it appears within the type `TypedInterner<'_, '_, '_, str, i32>`
+   = note: required because it appears within the type `&mut TypedInterner<'_, '_, '_, str, i32>`
 note: required by a bound in `is_sync`
   --> tests/ui/send_sync.rs:4:15
    |
 4  | fn is_sync<T: Sync>(val: T) {}
    |               ^^^^ required by this bound in `is_sync`
 
-error[E0277]: `RefCell<HashMap<arena_interner::UnsafeBumpRefStr, (), ahash::random_state::RandomState>>` cannot be shared between threads safely
+error[E0277]: `RefCell<hashbrown::map::HashMap<arena_interner::UnsafeBumpRef<str>, ()>>` cannot be shared between threads safely
   --> tests/ui/send_sync.rs:17:13
    |
 17 |     is_send(&interner); // should fail
-   |     ------- ^^^^^^^^^ `RefCell<HashMap<arena_interner::UnsafeBumpRefStr, (), ahash::random_state::RandomState>>` cannot be shared between threads safely
+   |     ------- ^^^^^^^^^ `RefCell<hashbrown::map::HashMap<arena_interner::UnsafeBumpRef<str>, ()>>` cannot be shared between threads safely
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `Interner<'_, '_>`, the trait `Sync` is not implemented for `RefCell<HashMap<arena_interner::UnsafeBumpRefStr, (), ahash::random_state::RandomState>>`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required for `&Interner<'_, '_>` to implement `Send`
+   = help: within `Interner<'_, '_, str>`, the trait `Sync` is not implemented for `RefCell<hashbrown::map::HashMap<arena_interner::UnsafeBumpRef<str>, ()>>`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required for `&Interner<'_, '_, str>` to implement `Send`
 note: required by a bound in `is_send`
   --> tests/ui/send_sync.rs:3:15
    |
@@ -361,12 +361,12 @@ error[E0277]: `Cell<NonNull<bumpalo::ChunkFooter>>` cannot be shared between thr
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `Interner<'_, '_>`, the trait `Sync` is not implemented for `Cell<NonNull<bumpalo::ChunkFooter>>`
-   = note: required because it appears within the type `Bump`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required for `&Interner<'_, '_>` to implement `Send`
+   = help: within `Interner<'_, '_, str>`, the trait `Sync` is not implemented for `Cell<NonNull<bumpalo::ChunkFooter>>`
+   = note: required because it appears within the type `bumpalo::Bump`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required for `&Interner<'_, '_, str>` to implement `Send`
 note: required by a bound in `is_send`
   --> tests/ui/send_sync.rs:3:15
    |
@@ -385,12 +385,12 @@ error[E0277]: `Cell<Option<usize>>` cannot be shared between threads safely
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `Interner<'_, '_>`, the trait `Sync` is not implemented for `Cell<Option<usize>>`
-   = note: required because it appears within the type `Bump`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required for `&Interner<'_, '_>` to implement `Send`
+   = help: within `Interner<'_, '_, str>`, the trait `Sync` is not implemented for `Cell<Option<usize>>`
+   = note: required because it appears within the type `bumpalo::Bump`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required for `&Interner<'_, '_, str>` to implement `Send`
 note: required by a bound in `is_send`
   --> tests/ui/send_sync.rs:3:15
    |
@@ -409,12 +409,12 @@ error[E0277]: `*const ()` cannot be shared between threads safely
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `Interner<'_, '_>`, the trait `Sync` is not implemented for `*const ()`
+   = help: within `Interner<'_, '_, str>`, the trait `Sync` is not implemented for `*const ()`
    = note: required because it appears within the type `PhantomData<*const ()>`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required for `&Interner<'_, '_>` to implement `Send`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required for `&Interner<'_, '_, str>` to implement `Send`
 note: required by a bound in `is_send`
   --> tests/ui/send_sync.rs:3:15
    |
@@ -425,19 +425,19 @@ help: consider dereferencing here
 17 |     is_send(*&interner); // should fail
    |             +
 
-error[E0277]: `RefCell<HashMap<arena_interner::UnsafeBumpRefStr, (), ahash::random_state::RandomState>>` cannot be shared between threads safely
+error[E0277]: `RefCell<hashbrown::map::HashMap<arena_interner::UnsafeBumpRef<str>, ()>>` cannot be shared between threads safely
   --> tests/ui/send_sync.rs:18:13
    |
 18 |     is_sync(&interner); // should fail
-   |     ------- ^^^^^^^^^ `RefCell<HashMap<arena_interner::UnsafeBumpRefStr, (), ahash::random_state::RandomState>>` cannot be shared between threads safely
+   |     ------- ^^^^^^^^^ `RefCell<hashbrown::map::HashMap<arena_interner::UnsafeBumpRef<str>, ()>>` cannot be shared between threads safely
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `&Interner<'_, '_>`, the trait `Sync` is not implemented for `RefCell<HashMap<arena_interner::UnsafeBumpRefStr, (), ahash::random_state::RandomState>>`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required because it appears within the type `&Interner<'_, '_>`
+   = help: within `&Interner<'_, '_, str>`, the trait `Sync` is not implemented for `RefCell<hashbrown::map::HashMap<arena_interner::UnsafeBumpRef<str>, ()>>`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required because it appears within the type `&Interner<'_, '_, str>`
 note: required by a bound in `is_sync`
   --> tests/ui/send_sync.rs:4:15
    |
@@ -452,12 +452,12 @@ error[E0277]: `Cell<NonNull<bumpalo::ChunkFooter>>` cannot be shared between thr
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `&Interner<'_, '_>`, the trait `Sync` is not implemented for `Cell<NonNull<bumpalo::ChunkFooter>>`
-   = note: required because it appears within the type `Bump`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required because it appears within the type `&Interner<'_, '_>`
+   = help: within `&Interner<'_, '_, str>`, the trait `Sync` is not implemented for `Cell<NonNull<bumpalo::ChunkFooter>>`
+   = note: required because it appears within the type `bumpalo::Bump`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required because it appears within the type `&Interner<'_, '_, str>`
 note: required by a bound in `is_sync`
   --> tests/ui/send_sync.rs:4:15
    |
@@ -472,12 +472,12 @@ error[E0277]: `Cell<Option<usize>>` cannot be shared between threads safely
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `&Interner<'_, '_>`, the trait `Sync` is not implemented for `Cell<Option<usize>>`
-   = note: required because it appears within the type `Bump`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required because it appears within the type `&Interner<'_, '_>`
+   = help: within `&Interner<'_, '_, str>`, the trait `Sync` is not implemented for `Cell<Option<usize>>`
+   = note: required because it appears within the type `bumpalo::Bump`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required because it appears within the type `&Interner<'_, '_, str>`
 note: required by a bound in `is_sync`
   --> tests/ui/send_sync.rs:4:15
    |
@@ -492,31 +492,31 @@ error[E0277]: `*const ()` cannot be shared between threads safely
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `&Interner<'_, '_>`, the trait `Sync` is not implemented for `*const ()`
+   = help: within `&Interner<'_, '_, str>`, the trait `Sync` is not implemented for `*const ()`
    = note: required because it appears within the type `PhantomData<*const ()>`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required because it appears within the type `&Interner<'_, '_>`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required because it appears within the type `&Interner<'_, '_, str>`
 note: required by a bound in `is_sync`
   --> tests/ui/send_sync.rs:4:15
    |
 4  | fn is_sync<T: Sync>(val: T) {}
    |               ^^^^ required by this bound in `is_sync`
 
-error[E0277]: `RefCell<HashMap<arena_interner::UnsafeBumpRefStr, (), ahash::random_state::RandomState>>` cannot be shared between threads safely
+error[E0277]: `RefCell<hashbrown::map::HashMap<arena_interner::UnsafeBumpRef<str>, ()>>` cannot be shared between threads safely
   --> tests/ui/send_sync.rs:20:13
    |
 20 |     is_sync(&mut interner); // should fail
-   |     ------- ^^^^^^^^^^^^^ `RefCell<HashMap<arena_interner::UnsafeBumpRefStr, (), ahash::random_state::RandomState>>` cannot be shared between threads safely
+   |     ------- ^^^^^^^^^^^^^ `RefCell<hashbrown::map::HashMap<arena_interner::UnsafeBumpRef<str>, ()>>` cannot be shared between threads safely
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `&mut Interner<'_, '_>`, the trait `Sync` is not implemented for `RefCell<HashMap<arena_interner::UnsafeBumpRefStr, (), ahash::random_state::RandomState>>`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required because it appears within the type `&mut Interner<'_, '_>`
+   = help: within `&mut Interner<'_, '_, str>`, the trait `Sync` is not implemented for `RefCell<hashbrown::map::HashMap<arena_interner::UnsafeBumpRef<str>, ()>>`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required because it appears within the type `&mut Interner<'_, '_, str>`
 note: required by a bound in `is_sync`
   --> tests/ui/send_sync.rs:4:15
    |
@@ -531,12 +531,12 @@ error[E0277]: `Cell<NonNull<bumpalo::ChunkFooter>>` cannot be shared between thr
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `&mut Interner<'_, '_>`, the trait `Sync` is not implemented for `Cell<NonNull<bumpalo::ChunkFooter>>`
-   = note: required because it appears within the type `Bump`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required because it appears within the type `&mut Interner<'_, '_>`
+   = help: within `&mut Interner<'_, '_, str>`, the trait `Sync` is not implemented for `Cell<NonNull<bumpalo::ChunkFooter>>`
+   = note: required because it appears within the type `bumpalo::Bump`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required because it appears within the type `&mut Interner<'_, '_, str>`
 note: required by a bound in `is_sync`
   --> tests/ui/send_sync.rs:4:15
    |
@@ -551,12 +551,12 @@ error[E0277]: `Cell<Option<usize>>` cannot be shared between threads safely
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `&mut Interner<'_, '_>`, the trait `Sync` is not implemented for `Cell<Option<usize>>`
-   = note: required because it appears within the type `Bump`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required because it appears within the type `&mut Interner<'_, '_>`
+   = help: within `&mut Interner<'_, '_, str>`, the trait `Sync` is not implemented for `Cell<Option<usize>>`
+   = note: required because it appears within the type `bumpalo::Bump`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required because it appears within the type `&mut Interner<'_, '_, str>`
 note: required by a bound in `is_sync`
   --> tests/ui/send_sync.rs:4:15
    |
@@ -571,12 +571,12 @@ error[E0277]: `*const ()` cannot be shared between threads safely
    |     |
    |     required by a bound introduced by this call
    |
-   = help: within `&mut Interner<'_, '_>`, the trait `Sync` is not implemented for `*const ()`
+   = help: within `&mut Interner<'_, '_, str>`, the trait `Sync` is not implemented for `*const ()`
    = note: required because it appears within the type `PhantomData<*const ()>`
-   = note: required because it appears within the type `Storage`
-   = note: required because it appears within the type `&Storage`
-   = note: required because it appears within the type `Interner<'_, '_>`
-   = note: required because it appears within the type `&mut Interner<'_, '_>`
+   = note: required because it appears within the type `Storage<str>`
+   = note: required because it appears within the type `&Storage<str>`
+   = note: required because it appears within the type `Interner<'_, '_, str>`
+   = note: required because it appears within the type `&mut Interner<'_, '_, str>`
 note: required by a bound in `is_sync`
   --> tests/ui/send_sync.rs:4:15
    |

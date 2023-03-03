@@ -1,8 +1,8 @@
 error[E0597]: `tag` does not live long enough
   --> tests/ui/unique.rs:5:5
    |
-5  |     make_interner!(interner2);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^ borrowed value does not live long enough
+5  |     make_interner!(interner2: str);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ borrowed value does not live long enough
 ...
 11 | }
    | -

@@ -3,8 +3,8 @@ error[E0597]: `storage` does not live long enough
   |
 4 |     let a = {
   |         - borrow later stored here
-5 |         make_interner!(mut interner);
-  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ borrowed value does not live long enough
+5 |         make_interner!(mut interner: str);
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ borrowed value does not live long enough
 ...
 8 |     };
   |     - `storage` dropped here while still borrowed
@@ -16,8 +16,8 @@ error[E0597]: `tag` does not live long enough
   |
 4 |     let a = {
   |         - borrow later stored here
-5 |         make_interner!(mut interner);
-  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ borrowed value does not live long enough
+5 |         make_interner!(mut interner: str);
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ borrowed value does not live long enough
 ...
 8 |     };
   |     - `tag` dropped here while still borrowed
@@ -29,8 +29,8 @@ error[E0597]: `storage` does not live long enough
    |
 13 |     let a = {
    |         - borrow later stored here
-14 |         make_interner!(interner);
-   |         ^^^^^^^^^^^^^^^^^^^^^^^^ borrowed value does not live long enough
+14 |         make_interner!(interner: str);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ borrowed value does not live long enough
 15 |         interner.intern("hello")
 16 |     };
    |     - `storage` dropped here while still borrowed
@@ -42,8 +42,8 @@ error[E0597]: `tag` does not live long enough
    |
 13 |     let a = {
    |         - borrow later stored here
-14 |         make_interner!(interner);
-   |         ^^^^^^^^^^^^^^^^^^^^^^^^ borrowed value does not live long enough
+14 |         make_interner!(interner: str);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ borrowed value does not live long enough
 15 |         interner.intern("hello")
 16 |     };
    |     - `tag` dropped here while still borrowed
